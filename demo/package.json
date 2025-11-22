@@ -1,0 +1,17 @@
+{
+    "name": "demo",
+    "version": "4.5.6",
+    "author": "cubicap",
+    "license": "MIT",
+    "description": "Minimal template for a new library",
+    "type": "module",
+    "main": "dist/js/index.js",
+    "types": "dist/types/index.d.ts",
+    "scripts": {
+        "build": "tsc -b",
+        "clean": "rm -rf dist"
+    },
+    "jaculus": {
+        "blocks": "blocks"
+    }
+}
