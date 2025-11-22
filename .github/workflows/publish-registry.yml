@@ -18,8 +18,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Set to 'true' to allow the workflow to push updates to the registry branch
           PUSH_REGISTRY: 'true'
-          # Set to 'true' to allow force pushing the registry branch
-          PUSH_FORCE: 'true'
+          # Set to 'true' to override whole branch with generated content (keeps just one commit history)
+          OVERRIDE_BRANCH: 'true'
           # Default registry repo URL; derived from the current repository
           REGISTRY_GIT_URL: https://github.com/${{ github.repository }}.git
         steps:
@@ -108,15 +108,21 @@ jobs:
                 git config user.name "github-actions[bot]"
                 git config user.email "github-actions[bot]@users.noreply.github.com"
 
-                # Prepare force flag if PUSH_FORCE is enabled
-                FORCE_FLAG=""
-                if [ "${{ env.PUSH_FORCE }}" = "true" ]; then
-                  FORCE_FLAG="--force"
-                fi
-
-                # Set up authentication and push
+                # Set up authentication
                 git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
                 git checkout registry || git checkout -b registry
-                git add -A
-                git commit -m "Update registry via GitHub Actions (${GITHUB_SHA})" || echo "No changes to commit"
-                git push $FORCE_FLAG origin registry
+
+                # If OVERRIDE_BRANCH is enabled, reset to single commit, otherwise just add commit
+                if [ "${{ env.OVERRIDE_BRANCH }}" = "true" ]; then
+                  # Remove all history and keep only current state
+                  git add -A
+                  git commit --allow-empty -m "Update registry via GitHub Actions (${GITHUB_SHA})"
+                  git reset --soft $(git rev-list --max-parents=0 HEAD)
+                  git commit --amend -m "Registry build from $(git rev-parse --short HEAD:../Jaculus-libraries/.git/HEAD || echo 'main')"
+                  git push --force origin registry
+                else
+                  # Regular commit and push
+                  git add -A
+                  git commit -m "Update registry via GitHub Actions (${GITHUB_SHA})" || echo "No changes to commit"
+                  git push origin registry
+                fi
