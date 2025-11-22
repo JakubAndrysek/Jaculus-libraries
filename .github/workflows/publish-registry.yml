@@ -19,7 +19,7 @@ jobs:
           # Set to 'true' to allow the workflow to push updates to the registry branch
           PUSH_REGISTRY: 'true'
           # Set to 'true' to allow force pushing the registry branch
-          PUSH_FORCE: 'false'
+          PUSH_FORCE: 'true'
           # Default registry repo URL; derived from the current repository
           REGISTRY_GIT_URL: https://github.com/${{ github.repository }}.git
         steps:
